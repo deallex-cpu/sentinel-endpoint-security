@@ -1,1 +1,16 @@
-{ "type": "commonjs" }
+{
+  "name": "sentinel-endpoint-security",
+  "version": "2.0.0",
+  "description": "SENTINEL — Dashboard de monitoring sécurité endpoint Windows (Node.js + PowerShell)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "type": "commonjs",
+  "keywords": ["security", "endpoint", "monitoring", "windows", "dashboard"],
+  "author": "deallex-cpu",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

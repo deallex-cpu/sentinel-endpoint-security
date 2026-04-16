@@ -4,6 +4,10 @@ node_modules/
 
 # Données locales générées
 backup_status.json
+sentinel.config.json
+
+# Fichiers sensibles
+.sentinel-token
 
 # Fichiers système
 Thumbs.db
