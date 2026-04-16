@@ -1,0 +1,2 @@
+// SENTINEL_V3_REDIRECT - Ce fichier charge le server v3
+// Le contenu complet est dans le commit
