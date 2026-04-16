@@ -1,96 +1,92 @@
-# SENTINEL — Endpoint Security Monitoring v2.0
+# SENTINEL — Endpoint Security Platform v3.0
 
-Dashboard de monitoring sécurité endpoint Windows en temps réel.  
-Node.js + PowerShell — Interface style Palo Alto / CrowdStrike.
+Plateforme de sécurité endpoint Windows en temps réel.  
+Node.js + PowerShell — 10 modules de protection — Interface style Palo Alto / CrowdStrike.
 
-![Version](https://img.shields.io/badge/version-2.0-blue)
+![Version](https://img.shields.io/badge/version-3.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-green)
+![Modules](https://img.shields.io/badge/modules-10-purple)
 
-## 🛡️ Fonctionnalités
+## 🚀 Démarrage rapide
 
-| Module | Description |
-|---|---|
-| **EDR** | Windows Defender — antivirus, temps réel, signatures |
-| **Firewall** | Profils pare-feu Windows — état et règles |
-| **DNS** | AdGuard Home — filtrage DNS |
-| **IDS** | Suricata — détection d'intrusion réseau |
-| **Backup** | Points de restauration VSS — protection ransomware |
-| **Réseau** | Ports en écoute, connexions, processus suspects |
-| **Événements** | Sysmon + Security Event Log |
-
-## ⚡ Actions de réponse
-
-- Tuer un processus suspect
-- Bloquer un port réseau
-- Désactiver un programme au démarrage
-- Activer le service VSS
-- **Kill Switch** — Isoler l'hôte du réseau
-
-## 🚀 Installation
-
-### Prérequis
-- Windows 10/11
-- Node.js >= 18
-- Droits administrateur
-
-### Démarrage rapide
 ```powershell
-# 1. Cloner le repo
+# 1. Cloner
 git clone https://github.com/deallex-cpu/sentinel-endpoint-security.git
 cd sentinel-endpoint-security
 
-# 2. Lancer en mode admin
-# Double-cliquer sur LANCER_DASHBOARD.bat
-# OU
+# 2. Lancer (en admin)
 node server.js
+# OU double-cliquer LANCER_DASHBOARD.bat
 ```
 
-### Configuration automatique (tâches planifiées)
-```powershell
-# PowerShell en administrateur
-.\setup_sentinel.ps1
-```
+📖 **Guide complet d'installation et migration:** voir [INSTALL.md](INSTALL.md)
 
-## 🔒 Sécurité (v2.0)
+## 🛡️ 10 Modules de Sécurité
 
-- ✅ Authentification par token CSRF
-- ✅ Protection XSS (échappement systématique)
-- ✅ Rate-limiting (20 actions/minute)
-- ✅ Validation stricte des entrées
-- ✅ Whitelist des actions autorisées
-- ✅ Headers de sécurité (CSP, X-Frame-Options, etc.)
-- ✅ Logging/audit de toutes les actions
-- ✅ `execFile()` au lieu de `exec()` (anti-injection)
-- ✅ Body size limité (2KB)
-- ✅ Graceful shutdown
+| Module | Description | Auto |
+|--------|-------------|------|
+| **Auto-Response** | Isole la machine si intrusion détectée | ✅ |
+| **IOC Scanner** | Détecte malwares, fichiers suspects, tâches piégées | ✅ |
+| **File Integrity** | Vérifie intégrité de 14 fichiers système critiques | ✅ |
+| **Ransomware Canary** | 5 fichiers piège → détection en < 30s | ✅ |
+| **Hardening** | Score sécurité Windows (10 checks CIS) | ✅ |
+| **Threat Intel** | Vérifie IPs contre feeds malicieux | ✅ |
+| **USB Monitor** | Détecte branchements USB | ✅ |
+| **Process Tree** | Arbre parent-enfant des processus | ✅ |
+| **Behavioral AI** | Baseline comportementale + détection anomalies | ✅ |
+| **Playbooks** | Règles SI/ALORS automatiques | ✅ |
 
-## 📁 Structure
+## ⚡ Réponse automatique aux intrusions
 
-```
-├── server.js              # Serveur HTTP sécurisé
-├── index.html             # Dashboard (design Palo Alto style)
-├── backup_check.ps1       # Check VSS (tâche planifiée)
-├── setup_sentinel.ps1     # Configuration des tâches
-├── LANCER_DASHBOARD.bat   # Lanceur avec élévation admin
-├── start_hidden.vbs       # Exécution cachée du serveur
-├── sentinel.config.json   # Configuration (généré auto)
-├── sentinel.log           # Log des actions (généré auto)
-└── .sentinel-token        # Token CSRF (généré auto)
-```
+| Déclencheur | Action automatique |
+|-------------|--------------------|
+| Canary modifié/supprimé | **Isolation réseau immédiate** |
+| Alerte Suricata critique | **Isolation réseau** |
+| Connexion vers IP malicieuse | **Kill du processus** |
+| Spike de connexions inconnues | **Kill des processus inconnus** |
+| Fichier système supprimé | **Alerte critique** |
+
+## 🔒 Sécurité du dashboard
+
+- Token CSRF sur toutes les actions
+- Protection XSS complète
+- Rate-limiting (30 actions/min)
+- Validation stricte des entrées
+- Headers sécurité (CSP, X-Frame-Options)
+- Logging/audit complet
+- `execFile()` anti-injection
+- Body size limité (4KB)
+- Graceful shutdown
+
+## 🎨 Interface
+
+- Design style **Palo Alto Cortex / CrowdStrike Falcon**
+- Sidebar navigation avec icônes
+- Font Inter (Google Fonts)
+- Score posture en temps réel (8 catégories)
+- Badges de sévérité (CRITIQUE, ELEVE, MOYEN, FAIBLE)
+- Kill switch (isolation d'urgence)
 
 ## 📝 Changelog
 
-### v2.0 — Audit de sécurité complet
-- Redesign UI (style Palo Alto Cortex / CrowdStrike Falcon)
-- Correction de 17 failles de sécurité
-- Ajout authentification, rate-limiting, audit trail
-- Protection XSS, injection, CSRF
-- Lecture Suricata par tail (anti-OOM)
-- Configuration externalisée
-- Graceful shutdown
+### v3.0 — Plateforme complète (10 modules)
+- Auto-Response Engine + Playbooks
+- IOC Scanner (5 types de checks)
+- File Integrity Monitor (14 fichiers critiques)
+- Ransomware Canary (5 fichiers piège)
+- Hardening Checker (10 checks CIS)
+- Threat Intelligence (feed stamparm/ipsum)
+- USB Device Monitor
+- Process Tree
+- Behavioral Baseline + Anomaly Detection
+- Score posture v3 (8 catégories)
+
+### v2.0 — Audit sécurité
+- Redesign UI (Palo Alto style)
+- 17 failles de sécurité corrigées
+- Token CSRF, rate-limiting, audit trail
 
 ### v1.0 — Version initiale
-- Dashboard de monitoring endpoint Windows
-- Collecte Defender, Firewall, AdGuard, Suricata, VSS
-- Actions de réponse (kill, block, isolate)
+- Dashboard monitoring Defender, Firewall, Suricata, VSS
+- Actions manuelles (kill, block, isolate)
