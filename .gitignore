@@ -1,14 +1,12 @@
-# Runtime / cache
 node_modules/
 *.log
-
-# Données locales générées
 backup_status.json
 sentinel.config.json
-
-# Fichiers sensibles
 .sentinel-token
-
-# Fichiers système
+fim_baseline.json
+behavioral_baseline.json
+auto_response.log
+threat_ips.txt
+canary_files/
 Thumbs.db
 .DS_Store
