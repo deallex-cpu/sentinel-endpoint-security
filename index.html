@@ -3,617 +3,548 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SENTINEL — Endpoint Security Monitoring</title>
+<title>SENTINEL — Endpoint Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#050a12;--surface:#0a1521;--card:#0d1e30;--border:#132035;--border2:#1c3050;
-  --cyan:#00d4ff;--green:#00e676;--orange:#ff9800;--red:#ff3d3d;--yellow:#ffeb3b;
-  --text:#c8dff0;--muted:#4a6f95;--dim:#243a52;
+  --bg:#080C14;--bg2:#0D1117;--surface:#161B22;--card:#1C2333;--elevated:#242D3D;
+  --border:#21262D;--border2:#30363D;--border3:#484F58;
+  --accent:#4F8EF7;--accent-dim:rgba(79,142,247,0.12);
+  --success:#2DA44E;--success-bg:rgba(45,164,78,0.1);--success-border:rgba(45,164,78,0.25);
+  --warn:#D29922;--warn-bg:rgba(210,153,34,0.1);--warn-border:rgba(210,153,34,0.25);
+  --danger:#F85149;--danger-bg:rgba(248,81,73,0.1);--danger-border:rgba(248,81,73,0.25);
+  --critical:#DA3633;--info:#58A6FF;
+  --text:#E6EDF3;--text2:#C9D1D9;--text3:#8B949E;--text4:#484F58;
+  --sidebar:240px;--topbar:56px;
+  --radius:8px;--radius-sm:6px;--radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);
 }
-body{background:var(--bg);color:var(--text);font-family:'Consolas','SF Mono',monospace;font-size:13px;min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,0.01) 2px,rgba(0,212,255,0.01) 4px);pointer-events:none;z-index:999;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text2);font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;line-height:1.5;overflow:hidden;height:100vh;}
+::selection{background:var(--accent);color:#fff;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border3);}
 
-/* HEADER */
-.header{background:linear-gradient(135deg,#060d18,#0a1521);border-bottom:1px solid var(--border2);padding:12px 24px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:100;box-shadow:0 4px 30px rgba(0,0,0,0.7);}
-.sentinel-logo{display:flex;align-items:center;gap:14px;}
-.sentinel-icon{width:38px;height:38px;filter:drop-shadow(0 0 10px rgba(0,212,255,0.6));}
-.sentinel-name{display:flex;flex-direction:column;}
-.sentinel-title{color:var(--cyan);font-size:20px;font-weight:bold;letter-spacing:5px;text-shadow:0 0 24px rgba(0,212,255,0.5);}
-.sentinel-sub{color:var(--muted);font-size:9px;letter-spacing:2.5px;margin-top:2px;}
+/* LAYOUT */
+.app{display:grid;grid-template-columns:var(--sidebar) 1fr;grid-template-rows:var(--topbar) 1fr;height:100vh;}
+.sidebar{grid-row:1/3;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:20px;z-index:40;}
+.main{overflow-y:auto;padding:24px;background:var(--bg);}
 
-/* POSTURE SCORE */
-.posture-block{margin-left:20px;display:flex;align-items:center;gap:14px;}
-.posture-ring{position:relative;width:60px;height:60px;}
-.posture-ring svg{transform:rotate(-90deg);}
-.posture-ring .ring-bg{fill:none;stroke:var(--border2);stroke-width:5;}
-.posture-ring .ring-arc{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s ease,stroke 0.5s;}
-.posture-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:bold;letter-spacing:1px;}
-.posture-breakdown{display:flex;flex-direction:column;gap:3px;}
-.pb-row{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--muted);letter-spacing:1px;}
-.pb-bar{width:60px;height:4px;background:var(--border2);border-radius:2px;overflow:hidden;}
-.pb-fill{height:100%;border-radius:2px;transition:width 0.8s ease;}
+/* SIDEBAR */
+.sb-brand{padding:20px 18px 24px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.sb-logo{width:32px;height:32px;flex-shrink:0;}
+.sb-name{font-weight:700;font-size:15px;color:var(--text);letter-spacing:.5px;}
+.sb-version{font-size:10px;color:var(--text4);font-weight:400;}
+.sb-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text3);font-size:13px;font-weight:500;transition:all .15s;user-select:none;border:1px solid transparent;}
+.sb-item:hover{background:var(--surface);color:var(--text2);}
+.sb-item.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(79,142,247,0.15);}
+.sb-item svg{width:18px;height:18px;flex-shrink:0;opacity:.7;}
+.sb-item.active svg{opacity:1;}
+.sb-badge{margin-left:auto;font-size:11px;font-weight:600;min-width:20px;text-align:center;padding:1px 6px;border-radius:10px;line-height:1.4;}
+.sb-badge.crit{background:var(--danger-bg);color:var(--danger);}
+.sb-badge.warn-b{background:var(--warn-bg);color:var(--warn);}
+.sb-badge.ok-b{background:var(--success-bg);color:var(--success);}
+.sb-badge.neutral{background:rgba(139,148,158,0.12);color:var(--text3);}
+.sb-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text4);}
 
-/* PILLS */
-.layer-pills{display:flex;gap:7px;flex-wrap:wrap;}
-.pill{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:9px;letter-spacing:1.5px;color:var(--muted);}
-.pill.ok{border-color:rgba(0,230,118,0.3);color:var(--green);}
-.pill.bad{border-color:rgba(255,61,61,0.3);color:var(--red);}
-.pill.warn{border-color:rgba(255,152,0,0.3);color:var(--orange);}
-.pill-dot{width:5px;height:5px;border-radius:50%;}
-.pill.ok .pill-dot{background:var(--green);box-shadow:0 0 5px var(--green);}
-.pill.bad .pill-dot{background:var(--red);box-shadow:0 0 5px var(--red);}
-.pill.warn .pill-dot{background:var(--orange);box-shadow:0 0 5px var(--orange);}
+/* TOPBAR */
+.tb-score{display:flex;align-items:center;gap:14px;}
+.score-ring{position:relative;width:40px;height:40px;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-ring .bg{fill:none;stroke:var(--border2);stroke-width:4;}
+.score-ring .arc{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .8s ease,stroke .4s;}
+.score-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.score-meta{display:flex;flex-direction:column;gap:2px;}
+.score-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;}
+.score-bars{display:flex;gap:8px;}
+.score-bar{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text4);font-weight:500;}
+.score-bar-track{width:40px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:2px;transition:width .6s ease;}
 
-/* HEADER RIGHT */
-.header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
-.live-badge{display:flex;align-items:center;gap:6px;color:var(--green);font-size:10px;letter-spacing:2px;}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.ts-text{color:var(--dim);font-size:10px;}
+.tb-pills{display:flex;gap:6px;margin-left:8px;flex-wrap:wrap;}
+.tb-pill{display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid;}
+.tb-pill.p-ok{color:var(--success);border-color:var(--success-border);background:var(--success-bg);}
+.tb-pill.p-bad{color:var(--danger);border-color:var(--danger-border);background:var(--danger-bg);}
+.tb-pill-dot{width:5px;height:5px;border-radius:50%;}
+.tb-pill.p-ok .tb-pill-dot{background:var(--success);}
+.tb-pill.p-bad .tb-pill-dot{background:var(--danger);}
 
-/* TABS */
-.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;overflow-x:auto;scrollbar-width:none;}
-.tabs::-webkit-scrollbar{display:none;}
-.tab{padding:11px 16px;cursor:pointer;border-bottom:2px solid transparent;color:var(--dim);font-size:10px;letter-spacing:1.5px;transition:all 0.2s;white-space:nowrap;user-select:none;}
-.tab:hover{color:var(--muted);}
-.tab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
-.badge{display:inline-block;border-radius:10px;padding:1px 6px;font-size:9px;margin-left:5px;background:rgba(255,61,61,0.2);color:var(--red);border:1px solid rgba(255,61,61,0.3);}
-.badge.ok{background:rgba(0,230,118,0.1);color:var(--green);border-color:rgba(0,230,118,0.25);}
-.badge.warn{background:rgba(255,152,0,0.1);color:var(--orange);border-color:rgba(255,152,0,0.3);}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.tb-live{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--success);}
+.tb-live-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.tb-ts{font-size:11px;color:var(--text4);}
+.tb-kill{padding:6px 14px;border-radius:var(--radius-sm);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.3px;transition:all .15s;border:1px solid var(--danger-border);background:var(--danger-bg);color:var(--danger);}
+.tb-kill:hover{background:rgba(248,81,73,.2);border-color:var(--danger);}
+.tb-kill.isolated{border-color:var(--warn-border);background:var(--warn-bg);color:var(--warn);animation:none;}
+.tb-kill:disabled{opacity:.4;cursor:not-allowed;}
 
-/* CONTENT */
-.content{padding:20px 24px;display:none;}
-.content.active{display:block;}
+/* PANELS */
+.panel{display:none;}
+.panel.active{display:block;}
 
-/* SECTION */
-.section{display:flex;align-items:center;gap:8px;color:var(--cyan);font-size:10px;letter-spacing:3px;margin:16px 0 8px;text-transform:uppercase;}
-.section::before{content:'';width:3px;height:14px;background:var(--cyan);border-radius:2px;box-shadow:0 0 10px var(--cyan);}
-.section::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent);margin-left:8px;}
+/* SECTION HEADER */
+.sec{display:flex;align-items:center;gap:10px;margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.sec:first-child{margin-top:0;}
+.sec-icon{width:18px;height:18px;color:var(--accent);flex-shrink:0;}
+.sec-title{font-size:12px;font-weight:600;color:var(--text);letter-spacing:.8px;text-transform:uppercase;}
 
-/* GRID */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:8px;}
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:8px;}
+.cd{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;transition:border-color .15s;}
+.cd:hover{border-color:var(--border2);}
+.cd-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;}
+.cd-value{font-size:16px;font-weight:700;letter-spacing:.2px;}
+.cd.s-ok{border-left:3px solid var(--success);}.cd.s-ok .cd-value{color:var(--success);}
+.cd.s-bad{border-left:3px solid var(--danger);}.cd.s-bad .cd-value{color:var(--danger);}
+.cd.s-warn{border-left:3px solid var(--warn);}.cd.s-warn .cd-value{color:var(--warn);}
 
-/* CARD */
-.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;position:relative;overflow:hidden;transition:transform 0.15s;}
-.card:hover{transform:translateY(-1px);}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:8px 8px 0 0;}
-.card.ok::before{background:var(--green);box-shadow:0 0 10px rgba(0,230,118,0.5);}
-.card.bad::before{background:var(--red);box-shadow:0 0 10px rgba(255,61,61,0.5);}
-.card.warn::before{background:var(--orange);box-shadow:0 0 10px rgba(255,152,0,0.5);}
-.card.ok{border-color:rgba(0,230,118,0.15);}
-.card.bad{border-color:rgba(255,61,61,0.2);}
-.card.warn{border-color:rgba(255,152,0,0.15);}
-.card-lbl{color:var(--muted);font-size:9px;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase;}
-.card-val{font-size:14px;font-weight:bold;letter-spacing:1px;}
-.card-val.ok{color:var(--green);}
-.card-val.bad{color:var(--red);}
-.card-val.warn{color:var(--orange);}
-</style>
-</head>
-<style>
 /* TABLES */
-.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;}
-.table-hd{padding:11px 16px;background:rgba(0,212,255,0.05);color:var(--cyan);font-size:10px;letter-spacing:2px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px;}
-.table-hd::before{content:'▸';}
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;}
+.tbl-hd{padding:12px 16px;font-size:12px;font-weight:600;color:var(--text);letter-spacing:.3px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 table{width:100%;border-collapse:collapse;}
-th{background:var(--surface);color:var(--dim);font-size:9px;letter-spacing:2px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);}
-td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;}
+th{background:var(--card);font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;}
 tr:last-child td{border-bottom:none;}
-tr:hover td{background:rgba(0,212,255,0.02);}
-.ok{color:var(--green);}.bad{color:var(--red);}.warn{color:var(--orange);}.dim{color:var(--dim);}
+tr:hover td{background:rgba(79,142,247,.02);}
+.no-data{padding:32px;text-align:center;color:var(--text3);font-size:12px;}
 
-/* ACTION BUTTON */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:4px;border:1px solid;font-size:10px;font-family:inherit;cursor:pointer;letter-spacing:1px;transition:all 0.15s;background:transparent;}
-.btn:hover{transform:translateY(-1px);}
-.btn-red{color:var(--red);border-color:rgba(255,61,61,0.4);}
-.btn-red:hover{background:rgba(255,61,61,0.1);}
-.btn-orange{color:var(--orange);border-color:rgba(255,152,0,0.4);}
-.btn-orange:hover{background:rgba(255,152,0,0.1);}
-.btn-cyan{color:var(--cyan);border-color:rgba(0,212,255,0.4);}
-.btn-cyan:hover{background:rgba(0,212,255,0.1);}
-.btn-green{color:var(--green);border-color:rgba(0,230,118,0.4);}
-.btn-green:hover{background:rgba(0,230,118,0.1);}
-.btn:disabled{opacity:0.4;cursor:not-allowed;}
+/* SEVERITY BADGES */
+.sev{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.3px;}
+.sev-CRITIQUE{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border);}
+.sev-ELEVE{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.sev-MOYEN{background:rgba(210,153,34,0.06);color:#D2A122;border:1px solid rgba(210,161,34,0.18);}
+.sev-FAIBLE{background:rgba(79,142,247,0.08);color:var(--info);border:1px solid rgba(79,142,247,0.18);}
+.sev-OK{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);}
 
-/* RISK BADGE */
-.risk{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:bold;letter-spacing:1px;}
-.risk-CRITIQUE{background:rgba(255,61,61,0.15);color:var(--red);border:1px solid rgba(255,61,61,0.3);}
-.risk-ELEVE{background:rgba(255,152,0,0.15);color:var(--orange);border:1px solid rgba(255,152,0,0.3);}
-.risk-MOYEN{background:rgba(255,235,59,0.1);color:var(--yellow);border:1px solid rgba(255,235,59,0.25);}
-.risk-FAIBLE{background:rgba(0,212,255,0.08);color:var(--cyan);border:1px solid rgba(0,212,255,0.2);}
-.risk-OK{background:rgba(0,230,118,0.08);color:var(--green);border:1px solid rgba(0,230,118,0.2);}
-
-/* ALERTS / RISKS */
-.risk-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background 0.15s;}
+/* RISK LIST */
+.risk-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .1s;}
 .risk-item:last-child{border-bottom:none;}
-.risk-item:hover{background:rgba(0,212,255,0.02);}
-.risk-msg{flex:1;font-size:12px;color:var(--text);}
-.risk-cat{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
-.no-data{padding:28px;text-align:center;color:var(--green);font-size:12px;letter-spacing:1px;}
+.risk-item:hover{background:rgba(79,142,247,.02);}
+.risk-body{flex:1;}
+.risk-msg{font-size:13px;color:var(--text);font-weight:500;}
+.risk-cat{font-size:10px;color:var(--text4);font-weight:500;margin-top:2px;letter-spacing:.5px;text-transform:uppercase;}
 
-/* SYSMON BAR */
-.sysmon-bar{padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);}
-.src{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:bold;margin-right:4px;}
-.src-SYSMON{background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.2);}
-.src-SECURITE{background:rgba(255,152,0,0.1);color:var(--orange);border:1px solid rgba(255,152,0,0.2);}
+/* EVENTS */
+.evt-bar{padding:8px 16px;background:var(--card);border-bottom:1px solid var(--border);font-size:11px;color:var(--text3);display:flex;gap:14px;}
+.evt-tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.3px;}
+.evt-SYSMON{background:rgba(79,142,247,0.1);color:var(--info);}
+.evt-SECURITE{background:rgba(210,153,34,0.1);color:var(--warn);}
 
 /* SURICATA */
-.sur-row{display:grid;grid-template-columns:80px 1fr 160px;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11px;align-items:center;}
+.sur-row{display:grid;grid-template-columns:80px 1fr 180px;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:12px;align-items:center;}
 .sur-row:last-child{border-bottom:none;}
-.sev1{color:var(--red);}.sev2{color:var(--orange);}.sev3{color:#ffcc00;}
 
-/* FOOTER */
-.refresh-bar{position:fixed;bottom:0;left:0;right:0;height:2px;background:var(--border);}
-.refresh-progress{height:100%;background:linear-gradient(90deg,var(--cyan),rgba(0,212,255,0.4));transition:width 1s linear;}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);border:1px solid;font-size:11px;font-family:inherit;font-weight:500;cursor:pointer;transition:all .12s;background:transparent;}
+.btn:hover{transform:translateY(-1px);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-danger{color:var(--danger);border-color:var(--danger-border);}
+.btn-danger:hover{background:var(--danger-bg);}
+.btn-warn{color:var(--warn);border-color:var(--warn-border);}
+.btn-warn:hover{background:var(--warn-bg);}
+.btn-ok{color:var(--success);border-color:var(--success-border);}
+.btn-ok:hover{background:var(--success-bg);}
 
-/* TOAST */
-#toasts{position:fixed;top:70px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:360px;pointer-events:none;}
-.toast{background:var(--card);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.6);pointer-events:all;animation:tIn 0.3s ease;border:1px solid var(--border2);}
-@keyframes tIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
-.toast.tOut{animation:tOut 0.3s ease forwards;}
-@keyframes tOut{to{opacity:0;transform:translateX(40px)}}
-.toast-CRITIQUE{border-left:3px solid var(--red);}
-.toast-ELEVE{border-left:3px solid var(--orange);}
-.toast-MOYEN{border-left:3px solid var(--yellow);}
-.toast-INFO{border-left:3px solid var(--green);}
-.toast-hd{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border);}
-.toast-lv{font-size:10px;font-weight:bold;letter-spacing:1px;flex:1;}
-.toast-CRITIQUE .toast-lv{color:var(--red);}
-.toast-ELEVE .toast-lv{color:var(--orange);}
-.toast-MOYEN .toast-lv{color:var(--yellow);}
-.toast-INFO .toast-lv{color:var(--green);}
-.toast-t{color:var(--dim);font-size:10px;}
-.toast-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;}
-.toast-x:hover{color:var(--text);}
-.toast-body{padding:10px 12px;font-size:11px;color:var(--text);line-height:1.4;}
+/* TOASTS */
+#toasts{position:fixed;top:64px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:380px;pointer-events:none;}
+.toast{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow),0 8px 24px rgba(0,0,0,.5);pointer-events:all;animation:slideIn .25s ease;border:1px solid var(--border2);overflow:hidden;}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+.toast.out{animation:slideOut .2s ease forwards;}
+@keyframes slideOut{to{opacity:0;transform:translateX(30px)}}
+.toast-CRITIQUE{border-left:3px solid var(--danger);}
+.toast-ELEVE{border-left:3px solid var(--warn);}
+.toast-MOYEN{border-left:3px solid #D2A122;}
+.toast-INFO{border-left:3px solid var(--success);}
+.toast-hd{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);}
+.toast-lv{font-size:11px;font-weight:600;flex:1;}
+.toast-CRITIQUE .toast-lv{color:var(--danger);}
+.toast-ELEVE .toast-lv{color:var(--warn);}
+.toast-MOYEN .toast-lv{color:#D2A122;}
+.toast-INFO .toast-lv{color:var(--success);}
+.toast-time{font-size:10px;color:var(--text4);}
+.toast-close{background:none;border:none;color:var(--text4);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;}
+.toast-close:hover{color:var(--text2);}
+.toast-msg{padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.5;}
 
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-::-webkit-scrollbar-thumb:hover{background:var(--cyan);}
+/* HELPERS */
+.c-ok{color:var(--success)!important;}.c-bad{color:var(--danger)!important;}.c-warn{color:var(--warn)!important;}
+.c-dim{color:var(--text4)!important;}.c-accent{color:var(--accent)!important;}.c-text{color:var(--text)!important;}
+.fw-600{font-weight:600;}.fw-700{font-weight:700;}
+.mono{font-family:'Cascadia Code','JetBrains Mono','Fira Code',monospace;font-size:12px;}
 
-/* KILL SWITCH */
-.killswitch{
-  background:rgba(255,61,61,0.1);border:1px solid rgba(255,61,61,0.5);
-  color:var(--red);font-family:inherit;font-size:10px;letter-spacing:2px;
-  padding:6px 14px;border-radius:5px;cursor:pointer;font-weight:bold;
-  transition:all 0.2s;animation:ksGlow 3s infinite;
-}
-@keyframes ksGlow{0%,100%{box-shadow:0 0 6px rgba(255,61,61,0.3)}50%{box-shadow:0 0 16px rgba(255,61,61,0.7)}}
-.killswitch:hover{background:rgba(255,61,61,0.25);transform:scale(1.03);}
-.killswitch.isolated{background:rgba(255,152,0,0.15);border-color:rgba(255,152,0,0.6);color:var(--orange);animation:none;}
-.killswitch:disabled{opacity:0.5;cursor:not-allowed;animation:none;}
+/* REFRESH BAR */
+.refresh-bar{position:fixed;bottom:0;left:var(--sidebar);right:0;height:2px;background:var(--border);z-index:30;}
+.refresh-fill{height:100%;background:linear-gradient(90deg,var(--accent),rgba(79,142,247,.3));transition:width 1s linear;}
 </style>
+</head>
 <body>
-<!-- HEADER -->
-<div class="header">
-  <div class="sentinel-logo">
-    <svg class="sentinel-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 3L6 9.5V21C6 28.5 12.5 35.5 20 38C27.5 35.5 34 28.5 34 21V9.5L20 3Z" stroke="#00d4ff" stroke-width="1.5" fill="rgba(0,212,255,0.07)"/>
-      <path d="M14 20L18.5 24.5L27 16" stroke="#00e676" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <div class="sentinel-name">
-      <div class="sentinel-title">SENTINEL</div>
-      <div class="sentinel-sub">ENDPOINT SECURITY MONITORING — WINDOWS</div>
-    </div>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <svg class="sb-logo" viewBox="0 0 40 40" fill="none"><path d="M20 3L6 9.5V21C6 28.5 12.5 35.5 20 38C27.5 35.5 34 28.5 34 21V9.5L20 3Z" stroke="#4F8EF7" stroke-width="1.8" fill="rgba(79,142,247,.08)"/><path d="M14 20L18.5 24.5L27 16" stroke="#2DA44E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div><div class="sb-name">SENTINEL</div><div class="sb-version">Endpoint Security v2.0</div></div>
   </div>
-  <div class="posture-block">
-    <div class="posture-ring">
-      <svg viewBox="0 0 60 60" width="60" height="60">
-        <circle class="ring-bg" cx="30" cy="30" r="26"/>
-        <circle class="ring-arc" id="ring-arc" cx="30" cy="30" r="26" stroke="#00e676"
-          stroke-dasharray="163.4" stroke-dashoffset="0"/>
+  <nav class="sb-nav">
+    <div class="sb-item active" onclick="nav('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Vue d'ensemble
+    </div>
+    <div class="sb-item" onclick="nav('risks',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/><line x1="12" y1="9" x2="12" y2="13" stroke-linecap="round"/><circle cx="12" cy="16" r=".8" fill="currentColor" stroke="none"/></svg>
+      Menaces
+      <span class="sb-badge crit" id="sb-risks">0</span>
+    </div>
+    <div class="sb-item" onclick="nav('ports',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="6" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+      Ports réseau
+      <span class="sb-badge neutral" id="sb-ports">0</span>
+    </div>
+    <div class="sb-item" onclick="nav('connexions',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Connexions
+      <span class="sb-badge neutral" id="sb-conn">0</span>
+    </div>
+    <div class="sb-item" onclick="nav('demarrage',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Démarrage
+    </div>
+    <div class="sb-item" onclick="nav('evenements',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Événements
+    </div>
+    <div class="sb-item" onclick="nav('suricata',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      Suricata IDS
+      <span class="sb-badge neutral" id="sb-sur">0</span>
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="sb-ts">—</span>
+    </div>
+    sentinel-endpoint-security
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-score">
+    <div class="score-ring">
+      <svg viewBox="0 0 44 44" width="40" height="40">
+        <circle class="bg" cx="22" cy="22" r="18"/>
+        <circle class="arc" id="ring-arc" cx="22" cy="22" r="18" stroke="#2DA44E" stroke-dasharray="113.1" stroke-dashoffset="0"/>
       </svg>
-      <div class="posture-num" id="ring-num" style="color:var(--green)">—</div>
+      <div class="score-val" id="ring-num" style="color:var(--success)">—</div>
     </div>
-    <div class="posture-breakdown" id="breakdown"></div>
+    <div class="score-meta">
+      <div class="score-label">Score posture</div>
+      <div class="score-bars" id="breakdown"></div>
+    </div>
   </div>
-  <div class="layer-pills" id="pills"></div>
-  <div class="header-right">
-    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-    <div class="ts-text" id="ts">Initialisation...</div>
-    <button id="killswitch-btn" class="killswitch" onclick="toggleIsolation()">⚡ ISOLER L'HÔTE</button>
+  <div class="tb-pills" id="pills"></div>
+  <div class="tb-right">
+    <div class="tb-live"><div class="tb-live-dot"></div>EN DIRECT</div>
+    <div class="tb-ts" id="ts">Initialisation…</div>
+    <button id="killswitch-btn" class="tb-kill" onclick="toggleIsolation()">⚡ Isoler l'hôte</button>
   </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+<div class="panel active" id="tab-dashboard">
+  <div class="sec"><svg class="sec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="sec-title">Antivirus / EDR</span></div>
+  <div class="cards" id="cards-def"></div>
+  <div class="sec"><svg class="sec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="sec-title">Pare-feu</span></div>
+  <div class="cards" id="cards-fw"></div>
+  <div class="sec"><svg class="sec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span class="sec-title">AdGuard DNS</span></div>
+  <div class="cards" id="cards-ag"></div>
+  <div class="sec"><svg class="sec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg><span class="sec-title">Suricata IDS</span></div>
+  <div class="cards" id="cards-sur"></div>
+  <div class="sec"><svg class="sec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="sec-title">Backup / Restauration</span></div>
+  <div class="cards" id="cards-bkp"></div>
+  <div class="sec"><svg class="sec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="sec-title">Réseau</span></div>
+  <div class="cards" id="cards-net"></div>
 </div>
 
-<!-- TABS -->
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('dashboard',this)">DASHBOARD</div>
-  <div class="tab" onclick="switchTab('risks',this)">RISQUES ACTIFS <span class="badge" id="badge-risks">0</span></div>
-  <div class="tab" onclick="switchTab('ports',this)">PORTS <span class="badge ok" id="badge-ports">0</span></div>
-  <div class="tab" onclick="switchTab('connexions',this)">CONNEXIONS <span class="badge ok" id="badge-conn">0</span></div>
-  <div class="tab" onclick="switchTab('demarrage',this)">DÉMARRAGE</div>
-  <div class="tab" onclick="switchTab('evenements',this)">ÉVÉNEMENTS</div>
-  <div class="tab" onclick="switchTab('suricata',this)">SURICATA IDS <span class="badge ok" id="badge-sur">0</span></div>
+<div class="panel" id="tab-risks">
+  <div class="tbl-wrap"><div class="tbl-hd">🛡️ Menaces actives — Classées par sévérité</div><div id="risks-list"></div></div>
 </div>
 
-<!-- DASHBOARD -->
-<div class="content active" id="tab-dashboard">
-  <div class="section">ANTIVIRUS / EDR</div><div class="grid" id="cards-def"></div>
-  <div class="section">PARE-FEU</div><div class="grid" id="cards-fw"></div>
-  <div class="section">ADGUARD DNS</div><div class="grid" id="cards-ag"></div>
-  <div class="section">SURICATA IDS</div><div class="grid" id="cards-sur"></div>
-  <div class="section">BACKUP / RESTAURATION</div><div class="grid" id="cards-bkp"></div>
-  <div class="section">RÉSEAU</div><div class="grid" id="cards-net"></div>
+<div class="panel" id="tab-ports">
+  <div class="tbl-wrap"><div class="tbl-hd">🔌 Ports en écoute — Analyse de risque</div>
+  <table><thead><tr><th>Port</th><th>Adresse</th><th>Processus</th><th>PID</th><th>Risque</th><th>Action</th></tr></thead>
+  <tbody id="tbody-ports"><tr><td colspan="6" class="no-data">Chargement…</td></tr></tbody></table></div>
 </div>
 
-<!-- RISQUES ACTIFS -->
-<div class="content" id="tab-risks">
-  <div class="table-wrap"><div class="table-hd">RISQUES ACTIFS — CLASSÉS PAR SÉVÉRITÉ</div>
-  <div id="risks-list"></div></div>
+<div class="panel" id="tab-connexions">
+  <div class="tbl-wrap"><div class="tbl-hd">🌐 Connexions internet actives</div>
+  <table><thead><tr><th>Processus</th><th>IP distante</th><th>Port</th><th>PID</th><th>Action</th></tr></thead>
+  <tbody id="tbody-conn"><tr><td colspan="5" class="no-data">Chargement…</td></tr></tbody></table></div>
 </div>
 
-<!-- PORTS -->
-<div class="content" id="tab-ports">
-  <div class="table-wrap"><div class="table-hd">PORTS EN ÉCOUTE — ANALYSE DE RISQUE</div>
-  <table><thead><tr><th>PORT</th><th>ADRESSE</th><th>PROCESSUS</th><th>PID</th><th>RISQUE</th><th>ACTION</th></tr></thead>
-  <tbody id="tbody-ports"><tr><td colspan="6" class="no-data">Chargement...</td></tr></tbody></table></div>
+<div class="panel" id="tab-demarrage">
+  <div class="tbl-wrap"><div class="tbl-hd">⚡ Programmes au démarrage</div>
+  <table><thead><tr><th>Nom</th><th>Chemin</th><th>Registre</th><th>Action</th></tr></thead>
+  <tbody id="tbody-start"><tr><td colspan="4" class="no-data">Chargement…</td></tr></tbody></table></div>
 </div>
 
-<!-- CONNEXIONS -->
-<div class="content" id="tab-connexions">
-  <div class="table-wrap"><div class="table-hd">CONNEXIONS INTERNET ACTIVES</div>
-  <table><thead><tr><th>PROCESSUS</th><th>IP DISTANTE</th><th>PORT</th><th>PID</th><th>ACTION</th></tr></thead>
-  <tbody id="tbody-conn"><tr><td colspan="5" class="no-data">Chargement...</td></tr></tbody></table></div>
+<div class="panel" id="tab-evenements">
+  <div class="tbl-wrap"><div class="tbl-hd">📋 Événements sécurité récents</div>
+  <div class="evt-bar" id="evts-bar"></div>
+  <table><thead><tr><th>Source</th><th>Type</th><th>Heure</th><th>Description</th></tr></thead>
+  <tbody id="tbody-evts"><tr><td colspan="4" class="no-data">Chargement…</td></tr></tbody></table></div>
 </div>
 
-<!-- DÉMARRAGE -->
-<div class="content" id="tab-demarrage">
-  <div class="table-wrap"><div class="table-hd">PROGRAMMES AU DÉMARRAGE</div>
-  <table><thead><tr><th>NOM</th><th>CHEMIN</th><th>CLÉ REGISTRE</th><th>ACTION</th></tr></thead>
-  <tbody id="tbody-start"><tr><td colspan="4" class="no-data">Chargement...</td></tr></tbody></table></div>
+<div class="panel" id="tab-suricata">
+  <div class="cards" id="cards-sur-detail"></div>
+  <div class="tbl-wrap" style="margin-top:16px"><div class="tbl-hd">🛡️ Alertes IDS du jour</div><div id="sur-alerts"></div></div>
 </div>
 
-<!-- ÉVÉNEMENTS -->
-<div class="content" id="tab-evenements">
-  <div class="table-wrap"><div class="table-hd">ÉVÉNEMENTS SÉCURITÉ RÉCENTS</div>
-  <div class="sysmon-bar" id="evts-bar"></div>
-  <table><thead><tr><th>SOURCE</th><th>TYPE</th><th>HEURE</th><th>DESCRIPTION</th></tr></thead>
-  <tbody id="tbody-evts"><tr><td colspan="4" class="no-data">Chargement...</td></tr></tbody></table></div>
+</main>
 </div>
 
-<!-- SURICATA IDS -->
-<div class="content" id="tab-suricata">
-  <div class="grid" id="cards-sur-detail"></div>
-  <div class="table-wrap"><div class="table-hd">ALERTES IDS DU JOUR</div>
-  <div id="sur-alerts"></div></div>
-</div>
-
-<div class="refresh-bar"><div class="refresh-progress" id="progress" style="width:100%"></div></div>
+<div class="refresh-bar"><div class="refresh-fill" id="progress" style="width:100%"></div></div>
 <div id="toasts"></div>
 
 <script>
-const REFRESH=30;
-const seenRisks=new Set();
+var SENTINEL_TOKEN='{{SENTINEL_TOKEN}}',REFRESH=30,seenRisks=new Set();
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
 
-// ── UI HELPERS ──────────────────────────────────────────────────────
-function switchTab(n,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');document.getElementById('tab-'+n).classList.add('active');
-}
-function card(lbl,val,cls){
-  return`<div class="card ${cls}"><div class="card-lbl">${lbl}</div><div class="card-val ${cls}">${val}</div></div>`;
-}
-function fmtUptime(s){
-  if(!s||isNaN(s))return'—';
-  if(s<60)return s+'s';
-  if(s<3600)return Math.floor(s/60)+'min';
-  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'min';
-}
-function parseWinDate(d){
-  if(!d)return null;
-  if(typeof d==='string'){
-    const m=d.match(/\/Date\((-?\d+)(?:[+-]\d+)?\)\//);
-    if(m)return new Date(parseInt(m[1]));
-    const dt=new Date(d);return isNaN(dt.getTime())?null:dt;
-  }
-  if(typeof d==='number')return new Date(d);
-  return null;
+function nav(id,el){
+  document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');document.getElementById('tab-'+id).classList.add('active');
 }
 
-// ── POSTURE RING ────────────────────────────────────────────────────
-function updateRing(score,breakdown){
-  const circ=163.4,offset=circ*(1-score/100);
-  const arc=document.getElementById('ring-arc');
-  const num=document.getElementById('ring-num');
-  const color=score>=80?'var(--green)':score>=60?'var(--orange)':'var(--red)';
-  arc.style.stroke=color;arc.style.strokeDashoffset=offset;
-  num.style.color=color;num.textContent=score;
-  const labels={edr:'EDR',firewall:'FW',backup:'BKP',ids:'IDS',network:'NET'};
-  document.getElementById('breakdown').innerHTML=Object.entries(breakdown).map(([k,v])=>{
-    const pct=v.score/v.max*100;
-    const c=pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
-    return`<div class="pb-row"><span style="width:28px">${labels[k]}</span>
-      <div class="pb-bar"><div class="pb-fill" style="width:${pct}%;background:${c}"></div></div>
-      <span style="color:${c}">${v.score}/${v.max}</span></div>`;
+function cd(lbl,val,cls){return'<div class="cd s-'+esc(cls)+'"><div class="cd-label">'+esc(lbl)+'</div><div class="cd-value">'+esc(val)+'</div></div>';}
+function fmtUp(s){if(!s||isNaN(s))return'—';if(s<60)return s+'s';if(s<3600)return Math.floor(s/60)+'m';return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';}
+function parseWD(d){if(!d)return null;if(typeof d==='string'){var m=d.match(/\/Date\((-?\d+)(?:[+-]\d+)?\)\//);if(m)return new Date(parseInt(m[1]));var dt=new Date(d);return isNaN(dt.getTime())?null:dt;}return typeof d==='number'?new Date(d):null;}
+
+function updateRing(score,bk){
+  var circ=113.1,off=circ*(1-score/100);
+  var arc=document.getElementById('ring-arc'),num=document.getElementById('ring-num');
+  var co=score>=80?'var(--success)':score>=60?'var(--warn)':'var(--danger)';
+  arc.style.stroke=co;arc.style.strokeDashoffset=off;num.style.color=co;num.textContent=score;
+  var labels={edr:'EDR',firewall:'FW',backup:'BKP',ids:'IDS',network:'NET'};
+  document.getElementById('breakdown').innerHTML=Object.entries(bk).map(function(e){
+    var k=e[0],v=e[1],pct=v.score/v.max*100;
+    var c=pct>=80?'var(--success)':pct>=50?'var(--warn)':'var(--danger)';
+    return'<div class="score-bar"><span>'+esc(labels[k])+'</span><div class="score-bar-track"><div class="score-bar-fill" style="width:'+pct+'%;background:'+c+'"></div></div></div>';
   }).join('');
 }
 function updatePills(d){
-  const def=d.defender||{},fw=Array.isArray(d.firewall)?d.firewall:[],ag=d.adguard||{},sur=d.suricata||{};
-  const layers=[
+  var def=d.defender||{},fw=Array.isArray(d.firewall)?d.firewall:[],ag=d.adguard||{},sur=d.suricata||{};
+  var layers=[
     {n:'EDR',ok:def.AntivirusEnabled&&def.RealTimeProtectionEnabled},
-    {n:'FIREWALL',ok:fw.length>0&&fw.every(f=>f.Enabled&&(f.DefaultInboundAction===4||f.DefaultInboundAction==='Block'))},
+    {n:'FIREWALL',ok:fw.length>0&&fw.every(function(f){return f.Enabled&&(f.DefaultInboundAction===4||f.DefaultInboundAction==='Block');})},
     {n:'DNS',ok:ag.ServiceRunning&&ag.SystemDnsIsLocal},
     {n:'IDS',ok:sur.running&&sur.alertCount===0},
-    {n:'SYSMON',ok:d.sysmonActive},
+    {n:'SYSMON',ok:d.sysmonActive}
   ];
-  document.getElementById('pills').innerHTML=layers.map(l=>`<div class="pill ${l.ok?'ok':'bad'}"><div class="pill-dot"></div>${l.n}</div>`).join('');
+  document.getElementById('pills').innerHTML=layers.map(function(l){return'<div class="tb-pill '+(l.ok?'p-ok':'p-bad')+'"><div class="tb-pill-dot"></div>'+esc(l.n)+'</div>';}).join('');
 }
 
-// ── ACTION API ──────────────────────────────────────────────────────
 async function doAction(action,params,btn){
-  if(btn){btn.disabled=true;btn.textContent='...';}
+  if(btn){btn.disabled=true;btn.textContent='…';}
   try{
-    const r=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,params})});
-    const j=await r.json();
-    showToast(j.ok?'INFO':'CRITIQUE',j.msg);
-    if(j.ok)setTimeout(()=>fetchData(),1500);
-  }catch(e){showToast('CRITIQUE','Erreur connexion serveur');}
-  if(btn){btn.disabled=false;btn.textContent=btn.dataset.label||'ACTION';}
+    var r=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json','X-Sentinel-Token':SENTINEL_TOKEN},body:JSON.stringify({action:action,params:params})});
+    if(r.status===403){showToast('CRITIQUE','Token invalide — rechargez');return;}
+    if(r.status===429){showToast('ELEVE','Trop de requêtes');return;}
+    var j=await r.json();showToast(j.ok?'INFO':'CRITIQUE',j.msg);
+    if(j.ok)setTimeout(fetchData,1500);
+  }catch(e){showToast('CRITIQUE','Connexion serveur perdue');}
+  if(btn){btn.disabled=false;btn.textContent=btn.dataset.label||'Action';}
+}
+function handleBtn(b){
+  var p={};
+  if(b.dataset.pid)p.pid=parseInt(b.dataset.pid);
+  if(b.dataset.port)p.port=parseInt(b.dataset.port);
+  if(b.dataset.sname)p.name=b.dataset.sname;
+  if(b.dataset.skey)p.key=b.dataset.skey;
+  doAction(b.dataset.action,p,b);
 }
 
-// ── TOAST ───────────────────────────────────────────────────────────
-function showToast(level,msg){
-  const c=document.getElementById('toasts');
-  const t=document.createElement('div');
-  t.className=`toast toast-${level}`;
-  const ico=level==='CRITIQUE'?'🚨':level==='ELEVE'?'⚠️':level==='MOYEN'?'⚡':'✅';
-  t.innerHTML=`<div class="toast-hd"><span>${ico}</span><span class="toast-lv">${level}</span>
-    <span class="toast-t">${new Date().toLocaleTimeString('fr-CA')}</span>
-    <button class="toast-x" onclick="this.closest('.toast').remove()">✕</button></div>
-    <div class="toast-body">${msg}</div>`;
-  c.appendChild(t);
-  const delay=level==='CRITIQUE'?9000:5000;
-  setTimeout(()=>{t.classList.add('tOut');setTimeout(()=>t.remove(),300);},delay);
+function showToast(lv,msg){
+  var c=document.getElementById('toasts'),t=document.createElement('div');
+  t.className='toast toast-'+esc(lv);
+  var ico=lv==='CRITIQUE'?'🚨':lv==='ELEVE'?'⚠️':lv==='MOYEN'?'⚡':'✅';
+  t.innerHTML='<div class="toast-hd"><span>'+ico+'</span><span class="toast-lv">'+esc(lv)+'</span><span class="toast-time">'+esc(new Date().toLocaleTimeString('fr-CA'))+'</span><button class="toast-close" onclick="this.closest(\'.toast\').remove()">✕</button></div><div class="toast-msg">'+esc(msg)+'</div>';
+  c.appendChild(t);setTimeout(function(){t.classList.add('out');setTimeout(function(){t.remove();},200);},lv==='CRITIQUE'?9000:5000);
 }
-
-// ── NOTIFICATIONS ────────────────────────────────────────────────────
-(async()=>{if('Notification'in window)await Notification.requestPermission();})();
-function nativeNotif(level,msg){
-  if(Notification.permission!=='granted')return;
-  new Notification(`SENTINEL — ${level}`,{body:msg,requireInteraction:level==='CRITIQUE'||level==='ELEVE'});
-}
+(async function(){if('Notification'in window)await Notification.requestPermission();})();
+function nNotif(lv,msg){if(Notification.permission==='granted')new Notification('SENTINEL — '+lv,{body:msg,requireInteraction:lv==='CRITIQUE'||lv==='ELEVE'});}
 function checkRisks(risks){
-  if(!risks?.length)return;
-  risks.filter(r=>r.sev==='CRITIQUE'||r.sev==='ELEVE').forEach(r=>{
-    const key=r.sev+'::'+r.msg;
-    if(!seenRisks.has(key)){
-      seenRisks.add(key);
-      showToast(r.sev,r.msg);
-      nativeNotif(r.sev,r.msg);
-    }
-  });
-  // nettoyer les risques résolus
-  for(const k of seenRisks){if(!risks.some(r=>(r.sev+'::'+r.msg)===k))seenRisks.delete(k);}
+  if(!risks||!risks.length)return;
+  risks.filter(function(r){return r.sev==='CRITIQUE'||r.sev==='ELEVE';}).forEach(function(r){var k=r.sev+'::'+r.msg;if(!seenRisks.has(k)){seenRisks.add(k);showToast(r.sev,r.msg);nNotif(r.sev,r.msg);}});
+  for(var k of seenRisks){if(!risks.some(function(r){return(r.sev+'::'+r.msg)===k;}))seenRisks.delete(k);}
 }
 </script>
 
 <script>
-// ── RENDER ──────────────────────────────────────────────────────────
 function render(d){
-  document.getElementById('ts').textContent='MAJ: '+d.ts;
-  updateRing(d.posture.total,d.posture.breakdown);
-  updatePills(d);
+  document.getElementById('ts').textContent='MAJ '+d.ts;
+  document.getElementById('sb-ts').textContent='MAJ '+d.ts;
+  updateRing(d.posture.total,d.posture.breakdown);updatePills(d);
 
-  // EDR
-  const def=d.defender||{};
-  const sd=parseWinDate(def.AntivirusSignatureLastUpdated);
-  const ageH=sd?Math.round((Date.now()-sd.getTime())/3600000):null;
-  const ageStr=ageH===null?'—':ageH<1?'< 1h':ageH+'h';
-  const ageCls=ageH===null?'warn':ageH<24?'ok':'bad';
+  var def=d.defender||{},sd=parseWD(def.AntivirusSignatureLastUpdated),ageH=sd?Math.round((Date.now()-sd.getTime())/36e5):null;
+  var ageStr=ageH===null?'—':ageH<1?'< 1h':ageH+'h',ageCls=ageH===null?'warn':ageH<24?'ok':'bad';
   document.getElementById('cards-def').innerHTML=
-    card('ANTIVIRUS',def.AntivirusEnabled?'ACTIF':'INACTIF',def.AntivirusEnabled?'ok':'bad')+
-    card('TEMPS RÉEL',def.RealTimeProtectionEnabled?'ACTIVE':'INACTIVE',def.RealTimeProtectionEnabled?'ok':'bad')+
-    card('COMPORTEMENT',def.BehaviorMonitorEnabled?'ACTIVE':'INACTIVE',def.BehaviorMonitorEnabled?'ok':'bad')+
-    card('SIGNATURES (ÂGE)',ageStr,ageCls)+
-    card('VERSION',def.AntivirusSignatureVersion||'—','ok');
+    cd('Antivirus',def.AntivirusEnabled?'Actif':'Inactif',def.AntivirusEnabled?'ok':'bad')+
+    cd('Temps réel',def.RealTimeProtectionEnabled?'Activé':'Désactivé',def.RealTimeProtectionEnabled?'ok':'bad')+
+    cd('Comportement',def.BehaviorMonitorEnabled?'Activé':'Désactivé',def.BehaviorMonitorEnabled?'ok':'bad')+
+    cd('Âge signatures',ageStr,ageCls)+
+    cd('Version',def.AntivirusSignatureVersion||'—','ok');
 
-  // FIREWALL
-  const fw=Array.isArray(d.firewall)?d.firewall:[];
-  document.getElementById('cards-fw').innerHTML=fw.map(f=>{
-    const bl=f.DefaultInboundAction===4||f.DefaultInboundAction==='Block';
-    const lbl=bl?'BLOQUÉ':f.DefaultInboundAction===2?'AUTORISÉ':'RÈGLES SYS';
-    const cls=!f.Enabled?'bad':bl?'ok':'warn';
-    return card('PARE-FEU '+(f.Name||'').toUpperCase(),(f.Enabled?'ACTIF':'INACTIF')+' | '+lbl,cls);
+  var fw=Array.isArray(d.firewall)?d.firewall:[];
+  document.getElementById('cards-fw').innerHTML=fw.map(function(f){
+    var bl=f.DefaultInboundAction===4||f.DefaultInboundAction==='Block';
+    return cd((f.Name||'')+'',(!f.Enabled?'Inactif':'Actif')+' — '+(bl?'Bloqué':'Autorisé'),!f.Enabled?'bad':bl?'ok':'warn');
   }).join('');
 
-  // ADGUARD
-  const ag=d.adguard||{};
-  const dnsStr=ag.SystemDns?.length?ag.SystemDns.join(', '):'Non configuré';
+  var ag=d.adguard||{},dns=ag.SystemDns&&ag.SystemDns.length?ag.SystemDns.join(', '):'N/A';
   document.getElementById('cards-ag').innerHTML=
-    card('SERVICE ADGUARD',ag.ServiceRunning?'EN COURS':'ARRÊTÉ',ag.ServiceRunning?'ok':'bad')+
-    card('PORT DNS 53',ag.DnsPort53Open?'OUVERT':'FERMÉ',ag.DnsPort53Open?'ok':'bad')+
-    card('DNS SYSTÈME',ag.SystemDnsIsLocal?'127.0.0.1 ✓':dnsStr,ag.SystemDnsIsLocal?'ok':'warn')+
-    card('FILTRAGE DNS',(ag.ServiceRunning&&ag.SystemDnsIsLocal)?'ACTIF':'INACTIF',(ag.ServiceRunning&&ag.SystemDnsIsLocal)?'ok':'bad');
+    cd('Service',ag.ServiceRunning?'En cours':'Arrêté',ag.ServiceRunning?'ok':'bad')+
+    cd('Port DNS 53',ag.DnsPort53Open?'Ouvert':'Fermé',ag.DnsPort53Open?'ok':'bad')+
+    cd('DNS système',ag.SystemDnsIsLocal?'127.0.0.1 ✓':dns,ag.SystemDnsIsLocal?'ok':'warn')+
+    cd('Filtrage',ag.ServiceRunning&&ag.SystemDnsIsLocal?'Actif':'Inactif',ag.ServiceRunning&&ag.SystemDnsIsLocal?'ok':'bad');
 
-  // SURICATA
-  const sur=d.suricata||{};
-  const dp=sur.packetsToday>0?((sur.kernelDrops/sur.packetsToday)*100).toFixed(3):'0.000';
-  const dpCls=parseFloat(dp)>1?'bad':parseFloat(dp)>0.1?'warn':'ok';
+  var sur=d.suricata||{},dp=sur.packetsToday>0?((sur.kernelDrops/sur.packetsToday)*100).toFixed(3):'0.000',dpC=parseFloat(dp)>1?'bad':parseFloat(dp)>0.1?'warn':'ok';
   document.getElementById('cards-sur').innerHTML=
-    card('SURICATA IDS',sur.running?'ACTIF':'ARRÊTÉ',sur.running?'ok':'bad')+
-    card('RÈGLES CHARGÉES',sur.rulesLoaded?sur.rulesLoaded.toLocaleString('fr'):'—',sur.rulesLoaded>0?'ok':'warn')+
-    card('PAQUETS ANALYSÉS',sur.packetsToday?sur.packetsToday.toLocaleString('fr'):'—','ok')+
-    card('ALERTES IDS',sur.alertCount||'0',sur.alertCount>0?'bad':'ok')+
-    card('PERTES RÉSEAU',(sur.kernelDrops||0).toLocaleString('fr')+' ('+dp+'%)',dpCls)+
-    card('UPTIME',fmtUptime(sur.uptime),sur.running?'ok':'warn');
+    cd('Suricata IDS',sur.running?'Actif':'Arrêté',sur.running?'ok':'bad')+
+    cd('Règles',sur.rulesLoaded?sur.rulesLoaded.toLocaleString('fr'):'—',sur.rulesLoaded>0?'ok':'warn')+
+    cd('Paquets',sur.packetsToday?sur.packetsToday.toLocaleString('fr'):'0','ok')+
+    cd('Alertes',sur.alertCount||'0',sur.alertCount>0?'bad':'ok')+
+    cd('Pertes',(sur.kernelDrops||0).toLocaleString('fr')+' ('+dp+'%)',dpC)+
+    cd('Uptime',fmtUp(sur.uptime),sur.running?'ok':'warn');
 
-  // BACKUP
-  const bkp=d.backup||{};
-  const bAge=bkp.lastBackupAge;
-  const bAgeStr=bAge!==null&&bAge!==undefined?(bAge<1?'< 1h':bAge+'h'):'—';
-  const bCls=bkp.vssCount===0?'bad':bAge>48?'warn':'ok';
-  // VSS est un service à la demande — ce qui compte c'est le nombre de points
-  const vssStatus=bkp.vssCount>0?'ACTIF ('+bkp.vssCount+' points)':'AUCUN POINT';
-  const vssCls=bkp.vssCount>0?'ok':'bad';
+  var bkp=d.backup||{},bA=bkp.lastBackupAge,bAS=bA!=null?(bA<1?'< 1h':bA+'h'):'—',bC=bkp.vssCount===0?'bad':bA>48?'warn':'ok';
   document.getElementById('cards-bkp').innerHTML=
-    card('SERVICE VSS',bkp.vssCount>0?'CONFIGURÉ':'INACTIF',bkp.vssCount>0?'ok':'bad')+
-    card('POINTS DE RESTAURATION',bkp.vssCount!==undefined?bkp.vssCount:'—',bkp.vssCount>0?'ok':'bad')+
-    card('DERNIÈRE SAUVEGARDE',bAgeStr,bCls)+
-    card('PROTECTION RANSOMWARE',bkp.vssCount>0?'VSS ACTIF':'AUCUNE',bkp.vssCount>0?'ok':'bad');
+    cd('Service VSS',bkp.vssCount>0?'Configuré':'Inactif',bkp.vssCount>0?'ok':'bad')+
+    cd('Points restauration',bkp.vssCount!=null?bkp.vssCount:'—',bkp.vssCount>0?'ok':'bad')+
+    cd('Dernière sauvegarde',bAS,bC)+
+    cd('Anti-ransomware',bkp.vssCount>0?'VSS actif':'Aucun',bkp.vssCount>0?'ok':'bad');
 
-  // RÉSEAU
-  const critP=(d.ports||[]).filter(p=>p.Risk==='CRITIQUE').length;
-  const unknP=(d.ports||[]).filter(p=>p.Name==='INCONNU').length;
-  const unknC=(d.connections||[]).filter(c=>c.Name==='INCONNU').length;
+  var cP=(d.ports||[]).filter(function(p){return p.Risk==='CRITIQUE';}).length;
+  var uP=(d.ports||[]).filter(function(p){return p.Name==='INCONNU';}).length;
+  var uC=(d.connections||[]).filter(function(c){return c.Name==='INCONNU';}).length;
   document.getElementById('cards-net').innerHTML=
-    card('PORTS EN ÉCOUTE',(d.ports||[]).length,'ok')+
-    card('PORTS CRITIQUES',critP,critP>0?'bad':'ok')+
-    card('PORTS INCONNUS',unknP,unknP>0?'bad':'ok')+
-    card('CONNEXIONS INTERNET',(d.connections||[]).length,'ok')+
-    card('CONNEXIONS SUSPECTES',unknC,unknC>0?'bad':'ok')+
-    card('SYSMON',d.sysmonActive?'ACTIF':'INACTIF',d.sysmonActive?'ok':'warn');
+    cd('Ports en écoute',(d.ports||[]).length,'ok')+
+    cd('Ports critiques',cP,cP>0?'bad':'ok')+
+    cd('Ports inconnus',uP,uP>0?'bad':'ok')+
+    cd('Connexions',(d.connections||[]).length,'ok')+
+    cd('Conn. suspectes',uC,uC>0?'bad':'ok')+
+    cd('Sysmon',d.sysmonActive?'Actif':'Inactif',d.sysmonActive?'ok':'warn');
 
-  renderRisks(d.risks||[]);
-  renderPorts(d.ports||[]);
-  renderConnections(d.connections||[]);
-  renderStartup(d.startup||[]);
-  renderEvents(d.events||[]);
-  renderSuricata(d.suricata||{});
+  renderRisks(d.risks||[]);renderPorts(d.ports||[]);renderConns(d.connections||[]);
+  renderStartup(d.startup||[]);renderEvents(d.events||[]);renderSuricata(d.suricata||{});
   checkRisks(d.risks);
 }
 </script>
 
 <script>
-// ── RENDER SECTIONS ──────────────────────────────────────────────────
 function renderRisks(risks){
-  const sevOrder={CRITIQUE:0,ELEVE:1,MOYEN:2,FAIBLE:3};
-  const sorted=[...risks].sort((a,b)=>(sevOrder[a.sev]||9)-(sevOrder[b.sev]||9));
-  const bd=document.getElementById('badge-risks');
-  const critCount=risks.filter(r=>r.sev==='CRITIQUE'||r.sev==='ELEVE').length;
-  bd.textContent=critCount;
-  bd.className=critCount>0?'badge':critCount>0?'badge warn':'badge ok';
+  var sO={CRITIQUE:0,ELEVE:1,MOYEN:2,FAIBLE:3};
+  var sorted=risks.slice().sort(function(a,b){return(sO[a.sev]||9)-(sO[b.sev]||9);});
+  var crit=risks.filter(function(r){return r.sev==='CRITIQUE'||r.sev==='ELEVE';}).length;
+  var warn=risks.filter(function(r){return r.sev==='MOYEN';}).length;
+  var bd=document.getElementById('sb-risks');bd.textContent=crit;
+  bd.className=crit>0?'sb-badge crit':warn>0?'sb-badge warn-b':'sb-badge ok-b';
   document.getElementById('risks-list').innerHTML=sorted.length
-    ?sorted.map(r=>{
-      let btn='';
-      if(r.action==='kill-process')btn=`<button class="btn btn-red" onclick="doAction('kill-process',${JSON.stringify(r.actionParams)},this)" data-label="TUER">⊘ TUER PID ${r.actionParams?.pid}</button>`;
-      else if(r.action==='block-port')btn=`<button class="btn btn-orange" onclick="doAction('block-port',${JSON.stringify(r.actionParams)},this)" data-label="BLOQUER">🔒 BLOQUER PORT</button>`;
-      else if(r.action==='enable-vss')btn=`<button class="btn btn-green" onclick="doAction('enable-vss',{},this)" data-label="ACTIVER">▶ ACTIVER VSS</button>`;
-      return`<div class="risk-item">
-        <span class="risk risk-${r.sev}">${r.sev}</span>
-        <div><div class="risk-msg">${r.msg}</div><div class="risk-cat">${r.cat}</div></div>
-        ${btn?'<div>'+btn+'</div>':''}
-      </div>`;
+    ?sorted.map(function(r){
+      var btn='';
+      if(r.action==='kill-process')btn='<button class="btn btn-danger" data-action="kill-process" data-pid="'+esc(r.actionParams&&r.actionParams.pid)+'" data-label="Tuer" onclick="handleBtn(this)">Tuer PID '+esc(r.actionParams&&r.actionParams.pid)+'</button>';
+      else if(r.action==='block-port')btn='<button class="btn btn-warn" data-action="block-port" data-port="'+esc(r.actionParams&&r.actionParams.port)+'" data-label="Bloquer" onclick="handleBtn(this)">Bloquer port</button>';
+      else if(r.action==='enable-vss')btn='<button class="btn btn-ok" data-action="enable-vss" data-label="Activer" onclick="handleBtn(this)">Activer VSS</button>';
+      return'<div class="risk-item"><span class="sev sev-'+esc(r.sev)+'">'+esc(r.sev)+'</span><div class="risk-body"><div class="risk-msg">'+esc(r.msg)+'</div><div class="risk-cat">'+esc(r.cat)+'</div></div>'+(btn?'<div>'+btn+'</div>':'')+'</div>';
     }).join('')
-    :'<div class="no-data">✓ Aucun risque détecté — posture sécurité nominale</div>';
+    :'<div class="no-data">✓ Aucune menace détectée — posture nominale</div>';
 }
 
 function renderPorts(ports){
-  document.getElementById('badge-ports').textContent=ports.length;
+  document.getElementById('sb-ports').textContent=ports.length;
   document.getElementById('tbody-ports').innerHTML=ports.length
-    ?ports.map(p=>{
-      const rCls=`risk-${p.Risk||'OK'}`;
-      const shortP=(p.Path||'').replace(/C:\\Users\\Utilisateur\\/,'~/').replace(/C:\\Program Files\\/,'PF/').replace(/C:\\Windows\\/,'WIN/');
-      const btn=`<button class="btn btn-orange" onclick="doAction('block-port',{port:${p.Port}},this)" data-label="BLOQUER">🔒 Bloquer</button>`;
-      return`<tr>
-        <td style="font-weight:bold;color:var(--cyan)">${p.Port}</td>
-        <td class="dim">${p.Addr}</td>
-        <td class="${p.Name==='INCONNU'?'bad':'ok'}">${p.Name}</td>
-        <td class="dim">${p.Pid}</td>
-        <td><span class="risk ${rCls}">${p.Risk||'OK'}</span></td>
-        <td>${btn}</td>
-      </tr>`;
+    ?ports.map(function(p){
+      return'<tr><td class="mono fw-700 c-accent">'+esc(p.Port)+'</td><td class="mono c-dim">'+esc(p.Addr)+'</td><td class="'+(p.Name==='INCONNU'?'c-bad':'c-ok')+' fw-600">'+esc(p.Name)+'</td><td class="mono c-dim">'+esc(p.Pid)+'</td><td><span class="sev sev-'+(p.Risk||'OK')+'">'+esc(p.Risk||'OK')+'</span></td><td><button class="btn btn-warn" data-action="block-port" data-port="'+esc(p.Port)+'" data-label="Bloquer" onclick="handleBtn(this)">Bloquer</button></td></tr>';
     }).join('')
     :'<tr><td colspan="6" class="no-data">Aucun port en écoute</td></tr>';
 }
 
-function renderConnections(conns){
-  document.getElementById('badge-conn').textContent=conns.length;
+function renderConns(conns){
+  document.getElementById('sb-conn').textContent=conns.length;
   document.getElementById('tbody-conn').innerHTML=conns.length
-    ?conns.map(c=>{
-      const btn=`<button class="btn btn-red" onclick="doAction('kill-process',{pid:${c.Pid}},this)" data-label="TUER">⊘ Tuer</button>`;
-      return`<tr>
-        <td class="${c.Name==='INCONNU'?'bad':'ok'}" style="font-weight:bold">${c.Name}</td>
-        <td style="color:var(--cyan)">${c.Remote}</td>
-        <td class="dim">${c.RemotePort}</td>
-        <td class="dim">${c.Pid}</td>
-        <td>${btn}</td>
-      </tr>`;
+    ?conns.map(function(c){
+      return'<tr><td class="'+(c.Name==='INCONNU'?'c-bad':'c-ok')+' fw-600">'+esc(c.Name)+'</td><td class="mono c-accent">'+esc(c.Remote)+'</td><td class="mono c-dim">'+esc(c.RemotePort)+'</td><td class="mono c-dim">'+esc(c.Pid)+'</td><td><button class="btn btn-danger" data-action="kill-process" data-pid="'+esc(c.Pid)+'" data-label="Tuer" onclick="handleBtn(this)">Tuer</button></td></tr>';
     }).join('')
-    :'<tr><td colspan="5" class="no-data">Aucune connexion internet active</td></tr>';
+    :'<tr><td colspan="5" class="no-data">Aucune connexion active</td></tr>';
 }
 
 function renderStartup(items){
   document.getElementById('tbody-start').innerHTML=items.length
-    ?items.map(s=>{
-      const params=JSON.stringify({name:s.Name,key:s.Key});
-      const btn=`<button class="btn btn-red" onclick="doAction('disable-startup',${params},this)" data-label="DÉSACT.">⊘ Désactiver</button>`;
-      return`<tr>
-        <td style="font-weight:bold;color:var(--cyan)">${s.Name}</td>
-        <td class="dim" style="max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.Path}">${s.Path}</td>
-        <td class="dim" style="font-size:10px">${(s.Key||'').replace('HKCU:\\','').replace('HKLM:\\','SYSTEM\\').split('\\').pop()}</td>
-        <td>${btn}</td>
-      </tr>`;
+    ?items.map(function(s){
+      return'<tr><td class="fw-600 c-text">'+esc(s.Name)+'</td><td class="mono c-dim" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(s.Path)+'">'+esc(s.Path)+'</td><td class="c-dim" style="font-size:10px">'+esc((s.Key||'').split('\\').pop())+'</td><td><button class="btn btn-danger" data-action="disable-startup" data-sname="'+esc(s.Name)+'" data-skey="'+esc(s.Key)+'" data-label="Désact." onclick="handleBtn(this)">Désactiver</button></td></tr>';
     }).join('')
-    :'<tr><td colspan="4" class="no-data">Aucun programme au démarrage</td></tr>';
+    :'<tr><td colspan="4" class="no-data">Aucun programme</td></tr>';
 }
 
 function renderEvents(events){
-  const sysC=events.filter(e=>e.Source==='SYSMON').length;
-  const secC=events.filter(e=>e.Source==='SECURITE').length;
-  document.getElementById('evts-bar').innerHTML=`<span class="src src-SYSMON">SYSMON</span>${sysC} &nbsp;|&nbsp; <span class="src src-SECURITE">SÉCURITÉ</span>${secC}`;
+  var sC=events.filter(function(e){return e.Source==='SYSMON';}).length;
+  var eC=events.filter(function(e){return e.Source==='SECURITE';}).length;
+  document.getElementById('evts-bar').innerHTML='<span class="evt-tag evt-SYSMON">SYSMON</span> '+esc(sC)+' événements &nbsp;·&nbsp; <span class="evt-tag evt-SECURITE">SÉCURITÉ</span> '+esc(eC)+' événements';
   document.getElementById('tbody-evts').innerHTML=events.length
-    ?events.map(e=>`<tr><td><span class="src src-${e.Source}">${e.Source}</span></td><td class="warn">${e.Type||e.Id}</td><td class="dim">${e.Time}</td><td class="dim" style="max-width:480px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(e.Msg||'').substring(0,150)}</td></tr>`).join('')
+    ?events.map(function(e){
+      return'<tr><td><span class="evt-tag evt-'+esc(e.Source)+'">'+esc(e.Source)+'</span></td><td class="c-warn fw-600">'+esc(e.Type||e.Id)+'</td><td class="mono c-dim">'+esc(e.Time)+'</td><td class="c-dim" style="max-width:460px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((e.Msg||'').substring(0,150))+'</td></tr>';
+    }).join('')
     :'<tr><td colspan="4" class="no-data">Aucun événement récent</td></tr>';
 }
 
 function renderSuricata(sur){
-  const dp=sur.packetsToday>0?((sur.kernelDrops/sur.packetsToday)*100).toFixed(3):'0.000';
-  const dpCls=parseFloat(dp)>1?'bad':parseFloat(dp)>0.1?'warn':'ok';
-  document.getElementById('badge-sur').textContent=sur.alertCount||'0';
-  document.getElementById('badge-sur').className=sur.alertCount>0?'badge':'badge ok';
+  var dp=sur.packetsToday>0?((sur.kernelDrops/sur.packetsToday)*100).toFixed(3):'0.000',dpC=parseFloat(dp)>1?'bad':parseFloat(dp)>0.1?'warn':'ok';
+  var sb=document.getElementById('sb-sur');sb.textContent=sur.alertCount||'0';
+  sb.className=sur.alertCount>0?'sb-badge crit':'sb-badge ok-b';
   document.getElementById('cards-sur-detail').innerHTML=
-    card('STATUT',sur.running?'EN COURS':'ARRÊTÉ',sur.running?'ok':'bad')+
-    card('RÈGLES',sur.rulesLoaded?sur.rulesLoaded.toLocaleString('fr'):'—',sur.rulesLoaded>0?'ok':'warn')+
-    card('PAQUETS',sur.packetsToday?sur.packetsToday.toLocaleString('fr'):'0','ok')+
-    card('ALERTES',sur.alertCount||'0',sur.alertCount>0?'bad':'ok')+
-    card('PERTES',(sur.kernelDrops||0).toLocaleString('fr')+' ('+dp+'%)',dpCls)+
-    card('UPTIME',fmtUptime(sur.uptime),sur.running?'ok':'warn');
-  const al=sur.alertsToday||[];
+    cd('Statut',sur.running?'En cours':'Arrêté',sur.running?'ok':'bad')+
+    cd('Règles',sur.rulesLoaded?sur.rulesLoaded.toLocaleString('fr'):'—',sur.rulesLoaded>0?'ok':'warn')+
+    cd('Paquets',sur.packetsToday?sur.packetsToday.toLocaleString('fr'):'0','ok')+
+    cd('Alertes',sur.alertCount||'0',sur.alertCount>0?'bad':'ok')+
+    cd('Pertes',(sur.kernelDrops||0).toLocaleString('fr')+' ('+dp+'%)',dpC)+
+    cd('Uptime',fmtUp(sur.uptime),sur.running?'ok':'warn');
+  var al=sur.alertsToday||[];
   document.getElementById('sur-alerts').innerHTML=al.length
-    ?al.map(a=>{const sc=a.severity===1?'sev1':a.severity===2?'sev2':'sev3';return`<div class="sur-row"><span class="${sc}">${a.time}</span><span>${a.sig}</span><span class="dim">${a.src}→${a.dst}</span></div>`;}).join('')
-    :'<div class="no-data">✓ Aucune alerte IDS — trafic nominal</div>';
+    ?al.map(function(a){var sc=a.severity===1?'c-bad':a.severity===2?'c-warn':'c-dim';return'<div class="sur-row"><span class="mono '+sc+'">'+esc(a.time)+'</span><span class="fw-500">'+esc(a.sig)+'</span><span class="mono c-dim">'+esc(a.src)+' → '+esc(a.dst)+'</span></div>';}).join('')
+    :'<div class="no-data">✓ Aucune alerte — trafic nominal</div>';
 }
 
-// ── FETCH & LOOP ─────────────────────────────────────────────────────
-// ── KILL SWITCH ─────────────────────────────────────────────────────
-let isolated = false;
+var isolated=false;
 async function toggleIsolation(){
-  const btn = document.getElementById('killswitch-btn');
+  var btn=document.getElementById('killswitch-btn');
   if(!isolated){
-    if(!confirm('⚠️ ISOLER L\'HÔTE ?\n\nCela va bloquer TOUT le trafic réseau entrant et sortant.\nSeul le dashboard (localhost) restera accessible.\n\nConfirmer ?'))return;
-    btn.disabled=true;btn.textContent='Isolation en cours...';
+    if(!confirm('⚠️ ISOLER L\'HÔTE ?\n\nTout le trafic réseau sera bloqué.\nSeul localhost restera accessible.\n\nConfirmer ?'))return;
+    btn.disabled=true;btn.textContent='Isolation…';
     await doAction('isolate-host',{},null);
-    isolated=true;
-    btn.disabled=false;
-    btn.textContent='🔴 HÔTE ISOLÉ — Lever l\'isolation';
-    btn.classList.add('isolated');
-    showToast('CRITIQUE','HÔTE ISOLÉ — Tout trafic réseau bloqué. Cliquez sur le bouton pour lever l\'isolation.');
-  } else {
-    if(!confirm('Lever l\'isolation réseau ?\n\nLe trafic réseau sera rétabli.'))return;
-    btn.disabled=true;btn.textContent='Levée en cours...';
+    isolated=true;btn.disabled=false;btn.textContent='🔴 Hôte isolé — Lever';btn.classList.add('isolated');
+  }else{
+    if(!confirm('Lever l\'isolation réseau ?'))return;
+    btn.disabled=true;btn.textContent='Levée…';
     await doAction('lift-isolation',{},null);
-    isolated=false;
-    btn.disabled=false;
-    btn.textContent='⚡ ISOLER L\'HÔTE';
-    btn.classList.remove('isolated');
-    showToast('INFO','Isolation levée — Trafic réseau rétabli.');
+    isolated=false;btn.disabled=false;btn.textContent='⚡ Isoler l\'hôte';btn.classList.remove('isolated');
   }
 }
 
-async function fetchData(){
-  try{const r=await fetch('/api/data');const d=await r.json();render(d);}
-  catch{document.getElementById('ts').textContent='ERREUR SERVEUR';}
-}
-function startCountdown(){
-  const b=document.getElementById('progress');
-  b.style.transition='none';b.style.width='100%';
-  setTimeout(()=>{b.style.transition=`width ${REFRESH}s linear`;b.style.width='0%';},100);
-}
-fetchData();startCountdown();
-setInterval(()=>{fetchData();startCountdown();},REFRESH*1000);
+async function fetchData(){try{var r=await fetch('/api/data');var d=await r.json();render(d);}catch(e){document.getElementById('ts').textContent='ERREUR SERVEUR';}}
+function countdown(){var b=document.getElementById('progress');b.style.transition='none';b.style.width='100%';setTimeout(function(){b.style.transition='width '+REFRESH+'s linear';b.style.width='0%';},80);}
+fetchData();countdown();setInterval(function(){fetchData();countdown();},REFRESH*1000);
 </script>
 </body>
 </html>
