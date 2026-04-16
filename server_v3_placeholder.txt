@@ -1,0 +1,8 @@
+// ═══════════════════════════════════════════════════════════════════════════
+//  SENTINEL v3.0 — Endpoint Security Platform
+//  10 modules: Auto-Response, IOC Scanner, FIM, Canary, Hardening,
+//              Threat Intel, USB, Process Tree, Behavioral, Playbooks
+// ═══════════════════════════════════════════════════════════════════════════
+// FICHIER COMPLET: voir branche v2-security-fix-redesign
+// Ce fichier est trop volumineux pour l'API create_or_update_file.
+// Utiliser push_files a la place.
